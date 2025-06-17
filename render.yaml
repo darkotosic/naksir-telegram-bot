@@ -2,7 +2,7 @@ services:
   - type: worker
     name: naksir-telegram-bot
     env: python
-    repo: https://github.com/darkotosic/naksir-telegram-bot
+    repo: https://github.com/your-username/naksir-telegram-bot
     branch: main
     buildCommand: pip install -r requirements.txt
     startCommand: python main.py
