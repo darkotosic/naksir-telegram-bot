@@ -95,3 +95,6 @@ async def get_full_analysis_input(fixture_id: int, home_id: int, away_id: int, l
         }
     except Exception as e:
         return {"error": str(e)}
+
+async def get_raw_fixtures(date: str):
+    return await fetch("fixtures", {"date": date, "timezone": "Europe/Belgrade"})
