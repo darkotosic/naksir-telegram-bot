@@ -70,3 +70,28 @@ async def get_fixture_details(fixture_id: int):
         "team_home_stats": th.get("response", {}),
         "team_away_stats": ta.get("response", {}),
     }
+
+# get_full_analysis_input za GPT analizu
+async def get_full_analysis_input(fixture_id: int, home_id: int, away_id: int, league_id: int, season: int):
+    try:
+        f, p, o, s, h2h, th, ta = await asyncio.gather(
+            fetch("fixtures", {"id": fixture_id}),
+            fetch("predictions", {"fixture": fixture_id}),
+            fetch("odds", {"fixture": fixture_id}),
+            fetch("fixtures/statistics", {"fixture": fixture_id}),
+            fetch("fixtures/headtohead", {"h2h": f"{home_id}-{away_id}"}),
+            fetch("teams/statistics", {"team": home_id, "league": league_id, "season": season}),
+            fetch("teams/statistics", {"team": away_id, "league": league_id, "season": season}),
+        )
+
+        return {
+            "fixture": f.get("response", [])[0],
+            "predictions": p.get("response", [])[0],
+            "odds": o.get("response", [])[0],
+            "statistics": s.get("response", []),
+            "h2h": h2h.get("response", []),
+            "team_home_stats": th.get("response", {}),
+            "team_away_stats": ta.get("response", {}),
+        }
+    except Exception as e:
+        return {"error": str(e)}
