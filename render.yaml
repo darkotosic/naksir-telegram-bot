@@ -1,7 +1,10 @@
 services:
   - type: worker
     name: naksir-telegram-bot
-    runtime: python
+    env: python
+    repo: https://github.com/your-username/naksir-telegram-bot
+    branch: main
+    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: python main.py
     envVars:
@@ -11,3 +14,5 @@ services:
         sync: false
       - key: OPENAI_API_KEY
         sync: false
+      - key: TODAY_API_URL
+        value: https://today-api-7f3i.onrender.com
