@@ -1,32 +1,22 @@
-# main.py
-import asyncio
-from aiogram import Bot, Dispatcher, types
-from aiogram.types import Message
-from aiogram.filters import Command
 import os
 from dotenv import load_dotenv
-from commands.analyze import handle_analysis
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+
+from commands.start import start
+from commands.help import help_command
+from commands.analyze import analyze
 
 load_dotenv()
 
-bot = Bot(token=os.getenv("TELEGRAM_BOT_TOKEN"))
-dp = Dispatcher()
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
-@dp.message(Command("start"))
-async def start(message: Message):
-    await message.answer("Dobrodošao u NAKSIR VIP bota! Koristi /analyze <fixture_id> za dubinsku analizu meča.")
+app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
-@dp.message(Command("analyze"))
-async def analyze(message: Message):
-    try:
-        fid = int(message.text.split(" ")[1])
-        reply = await handle_analysis(fid)
-        await message.answer(reply)
-    except:
-        await message.answer("⚠️ Unesi validan fixture ID. Primer: /analyze 215402")
-
-async def main():
-    await dp.start_polling(bot)
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("help", help_command))
+app.add_handler(CommandHandler("analyze", analyze))  # /analyze <fixture_id>
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    print("🚀 Bot is running...")
+    app.run_polling()
