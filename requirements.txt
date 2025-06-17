@@ -1,4 +1,4 @@
 python-dotenv
 httpx
 openai
-aiogram==3.5.0
+python-telegram-bot==20.8
