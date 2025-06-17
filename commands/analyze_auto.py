@@ -6,9 +6,8 @@ import pytz
 from services.api_football import get_raw_fixtures, get_fixture_details
 from services.gpt_analyzer import generate_ai_analysis
 
-
 def select_fixture(fixtures: list) -> dict:
-    """Selects a fixture based on predictions and start time within next 12h."""
+    """Select a fixture within next 12h that has predictions."""
     now = datetime.now(tz=timezone.utc)
     upcoming = []
 
@@ -24,15 +23,14 @@ def select_fixture(fixtures: list) -> dict:
     if not upcoming:
         return None
 
-    # Sort by soonest kick-off
+    # Return soonest match
     upcoming.sort(key=lambda x: x[0])
     return upcoming[0][1]
 
-
-async def analyze_auto(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# ✅ OVO JE IME KOJE KORISTI main.py
+async def analyze_auto_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("📅 Searching today's fixtures with predictions...")
 
-    # Get today's fixtures
     today = datetime.now(tz=pytz.timezone("Europe/Belgrade")).date().isoformat()
     fixtures_data = await get_raw_fixtures(today)
     fixtures = fixtures_data.get("response", [])
@@ -42,7 +40,6 @@ async def analyze_auto(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     chosen = select_fixture(fixtures)
-
     if not chosen:
         await update.message.reply_text("⚠️ No suitable fixture found for analysis.")
         return
@@ -50,7 +47,6 @@ async def analyze_auto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     fixture_id = chosen["fixture"]["id"]
     await update.message.reply_text(f"🎯 Selected Fixture ID: {fixture_id}\n🧠 Generating AI analysis...")
 
-    # Get full details and analyze
     details = await get_fixture_details(fixture_id)
     report = await generate_ai_analysis(details)
 
