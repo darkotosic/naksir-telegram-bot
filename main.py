@@ -5,7 +5,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler
 from commands.start import start_command as start
 from commands.help import help_command
 from commands.analyze import analyze_command as analyze
-from commands.analyze_auto import analyze_auto
+from commands.analyze_auto import analyze_auto_command as analyze_auto  # ✅ ISPRAVLJENO
 
 from utils.logger import get_logger
 
