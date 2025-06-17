@@ -5,6 +5,10 @@ from dotenv import load_dotenv
 from cachetools import TTLCache
 from datetime import date
 
+from utils.logger import get_logger  # ✅ Logger dodat
+
+logger = get_logger()
+
 load_dotenv()
 
 API_KEY = os.getenv("API_FOOTBALL_KEY")
@@ -20,8 +24,11 @@ async def fetch(endpoint: str, params: dict = None):
     key = f"{endpoint}_{str(params)}"
     async with cache_lock:
         if key in cache:
+            logger.info(f"Cache hit: {key}")
             return cache[key]
+
     try:
+        logger.info(f"Fetching: {endpoint} {params}")
         async with httpx.AsyncClient() as client:
             res = await client.get(f"{BASE_URL}/{endpoint}", headers=HEADERS, params=params)
             data = res.json()
@@ -29,10 +36,12 @@ async def fetch(endpoint: str, params: dict = None):
                 cache[key] = data
             return data
     except Exception as e:
+        logger.error(f"Fetch failed: {endpoint} {params} -> {e}")
         return {"error": str(e), "response": []}
 
 # Core enrichments
 async def get_fixture_details(fixture_id: int):
+    logger.info(f"🔎 Getting details for fixture {fixture_id}")
     fixture_data = await fetch("fixtures", {"id": fixture_id})
     fixture = fixture_data.get("response", [])[0]
 
@@ -40,6 +49,8 @@ async def get_fixture_details(fixture_id: int):
     away_id = fixture["teams"]["away"]["id"]
     league_id = fixture["league"]["id"]
     season = fixture["league"]["season"]
+
+    logger.info(f"⚙️ Enriching fixture {fixture_id} with predictions, odds, stats, h2h")
 
     pred, odds, stats, h2h, th, ta = await asyncio.gather(
         fetch("predictions", {"fixture": fixture_id}),
