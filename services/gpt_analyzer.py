@@ -88,3 +88,22 @@ Generate a concise but smart analysis of the likely match outcome. Be neutral, d
     except Exception as e:
         logger.error(f"❌ GPT API failed: {e}")
         return f"❌ GPT analysis failed: {str(e)}"
+
+from utils.logger import get_logger
+logger = get_logger()
+
+async def generate_ai_analysis(data: dict) -> str:
+    try:
+        fixture = data["fixture"]
+        fixture_id = fixture["fixture"]["id"]
+        home_id = fixture["teams"]["home"]["id"]
+        away_id = fixture["teams"]["away"]["id"]
+        league_id = fixture["league"]["id"]
+        season = fixture["league"]["season"]
+
+        logger.info(f"Generating GPT analysis for fixture {fixture_id}")
+        return await analyze_fixture(fixture_id, home_id, away_id, league_id, season)
+
+    except Exception as e:
+        logger.error(f"generate_ai_analysis failed: {str(e)}")
+        return f"❌ Analysis failed: {str(e)}"
