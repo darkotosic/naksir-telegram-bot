@@ -3,6 +3,9 @@ import openai
 import asyncio
 from dotenv import load_dotenv
 from services.api_football import get_full_analysis_input
+from utils.logger import get_logger  # ✅ Dodaj logger
+
+logger = get_logger()
 
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -25,9 +28,12 @@ Away Win: {p.get("winner", {}).get("away", {}).get("percentage", "N/A")}%
 
 
 async def analyze_fixture(fixture_id: int, home_id: int, away_id: int, league_id: int, season: int) -> str:
+    logger.info(f"🎯 Analyzing fixture {fixture_id} between team {home_id} and {away_id}")
+    
     data = await get_full_analysis_input(fixture_id, home_id, away_id, league_id, season)
 
     if "error" in data:
+        logger.error(f"❌ Failed to fetch full analysis input: {data['error']}")
         return f"❌ Failed to fetch match data: {data['error']}"
 
     fixture = data["fixture"]
@@ -45,7 +51,8 @@ async def analyze_fixture(fixture_id: int, home_id: int, away_id: int, league_id
     home_form = team_home.get("form", "N/A")
     away_form = team_away.get("form", "N/A")
 
-    # Prompt for GPT
+    logger.info(f"🧠 Creating GPT prompt for match: {home_name} vs {away_name}")
+
     prompt = f"""
 You are a professional football analyst.
 Analyze the following match using the form, head-to-head, predictions and team stats.
@@ -68,14 +75,16 @@ Generate a concise but smart analysis of the likely match outcome. Be neutral, d
         completion = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=500,
+            max_tokens=1000,
             temperature=0.7
         )
 
         analysis = completion["choices"][0]["message"]["content"].strip()
         prediction_block = format_prediction_percentages(predictions)
 
+        logger.info(f"✅ GPT analysis complete for fixture {fixture_id}")
         return f"{analysis}\n\n{prediction_block}"
 
     except Exception as e:
+        logger.error(f"❌ GPT API failed: {e}")
         return f"❌ GPT analysis failed: {str(e)}"
